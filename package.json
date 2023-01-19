@@ -1,7 +1,7 @@
 {
     "name": "scheduling-app-server",
     "private": true,
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Nest TypeScript starter repository",
     "license": "MIT",
     "scripts": {

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { NestFastifyApplication } from '@nestjs/platform-fastify'
-import { RegisterDto } from './dto/register.dto'
+import { AuthDto } from './dto/common.dto'
 
 export const genUserData = (
     email = faker.internet.email(),
@@ -9,11 +9,24 @@ export const genUserData = (
 
 export const registerUser = async (
     app: NestFastifyApplication,
-    userData: RegisterDto = genUserData()
+    userData: AuthDto = genUserData()
 ) => {
     const res = await app.inject({
         method: 'POST',
         url: '/users/register',
+        payload: userData,
+    })
+
+    return [res.json(), res.statusCode, userData]
+}
+
+export const logInUser = async (
+    app: NestFastifyApplication,
+    userData: AuthDto
+) => {
+    const res = await app.inject({
+        method: 'POST',
+        url: '/users/log-in',
         payload: userData,
     })
 

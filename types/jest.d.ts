@@ -3,11 +3,8 @@ interface CustomMatchers<R = unknown> {
     toMatchError(error: string): Promise<R>
 }
 
-declare global {
-    namespace jest {
-        type Expect = CustomMatchers
-        type Matchers<R> = CustomMatchers<R>
-        type InverseAsymmetricMatchers = CustomMatchers
-    }
+declare module 'expect' {
+    interface AsymmetricMatchers extends CustomMatchers {}
+    interface Matchers extends CustomMatchers {}
 }
 export {}

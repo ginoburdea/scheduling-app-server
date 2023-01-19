@@ -1,5 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsDateString, IsEmail, IsString, Length } from 'class-validator'
+import { Transform } from 'class-transformer'
+import {
+    IsDateString,
+    IsEmail,
+    IsString,
+    Length,
+    MaxLength,
+    MinLength,
+} from 'class-validator'
+
+export class AuthDto {
+    @ApiProperty()
+    @IsEmail()
+    @Transform(({ value }) => value.toLowerCase())
+    email: string
+
+    @ApiProperty()
+    @IsString()
+    @MinLength(8)
+    @MaxLength(64)
+    password: string
+}
 
 export class AuthRes {
     @ApiProperty()

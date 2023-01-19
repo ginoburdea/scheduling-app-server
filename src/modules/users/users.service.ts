@@ -44,7 +44,32 @@ export class UsersService {
             ip
         )
         return {
-            userEmail: email,
+            userEmail: user.email,
+            session,
+            sessionExpiresAt,
+        }
+    }
+
+    async logIn(email: string, password: string, ip: string) {
+        const user = await this.prisma.users.findFirst({
+            where: { email },
+            select: { id: true, email: true, password: true },
+        })
+        if (!user) {
+            throw new BadRequestException(usersErrors.logIn.userNotFound)
+        }
+
+        const passwordsMatch = await bcrypt.compare(password, user.password)
+        if (!passwordsMatch) {
+            throw new BadRequestException(usersErrors.logIn.wrongPassword)
+        }
+
+        const { session, sessionExpiresAt } = await this.createSession(
+            user.id,
+            ip
+        )
+        return {
+            userEmail: user.email,
             session,
             sessionExpiresAt,
         }

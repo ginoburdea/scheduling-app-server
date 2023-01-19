@@ -1,7 +1,7 @@
 import { expect } from '@jest/globals'
 import type { MatcherFunction } from 'expect'
 import { plainToInstance, ClassConstructor } from 'class-transformer'
-import { IsInt, IsOptional, IsString, validate } from 'class-validator'
+import { validate } from 'class-validator'
 import { validationOptions } from './validationOptions'
 import { ErrorDto } from './ErrorRes'
 
@@ -26,7 +26,7 @@ const toMatchError: MatcherFunction<[error: string]> = async function (
     actual: ErrorDto,
     error
 ) {
-    await (expect as unknown as jest.Expect)(actual).toMatchDto(ErrorDto)
+    await expect(actual).toMatchDto(ErrorDto)
 
     const pass = actual.message === error
     return {

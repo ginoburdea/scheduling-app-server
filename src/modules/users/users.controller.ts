@@ -1,8 +1,7 @@
 import { ErrorDto } from '@/utils/ErrorRes'
 import { Body, Controller, HttpCode, Ip, Post } from '@nestjs/common'
 import { ApiOkResponse, ApiTags, ApiDefaultResponse } from '@nestjs/swagger'
-import { AuthRes } from './dto/common.dto'
-import { RegisterDto } from './dto/register.dto'
+import { AuthDto, AuthRes } from './dto/common.dto'
 import { UsersService } from './users.service'
 
 @Controller('users')
@@ -14,7 +13,14 @@ export class UsersController {
     @Post('register')
     @HttpCode(200)
     @ApiOkResponse({ type: AuthRes })
-    async register(@Body() body: RegisterDto, @Ip() ip: string) {
+    async register(@Body() body: AuthDto, @Ip() ip: string) {
         return await this.usersService.register(body.email, body.password, ip)
+    }
+
+    @Post('log-in')
+    @HttpCode(200)
+    @ApiOkResponse({ type: AuthRes })
+    async logIn(@Body() body: AuthDto, @Ip() ip: string) {
+        return await this.usersService.logIn(body.email, body.password, ip)
     }
 }
