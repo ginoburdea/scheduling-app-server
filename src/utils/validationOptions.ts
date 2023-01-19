@@ -13,7 +13,16 @@ export const validationOptions: ValidationPipeOptions = {
         enableImplicitConversion: true,
     },
     exceptionFactory: errors => {
-        const constraint = Object.keys(errors[0].constraints)[0]
-        return new BadRequestException(errors[0].constraints[constraint])
+        const [error] = errors
+
+        if (error.constraints) {
+            const constraint = Object.keys(error.constraints)[0]
+            return new BadRequestException(errors[0].constraints[constraint])
+        } else {
+            const constraint = Object.keys(error.children[0].constraints)[0]
+            return new BadRequestException(
+                errors[0].children[0].constraints[constraint]
+            )
+        }
     },
 }

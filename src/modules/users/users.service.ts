@@ -88,7 +88,11 @@ export class UsersService {
 
         const hashedPassword = await bcrypt.hash(password, 12)
         const user = await this.prisma.users.create({
-            data: { email, password: hashedPassword },
+            data: {
+                email,
+                password: hashedPassword,
+                calendars: { create: {} },
+            },
         })
 
         const { session, sessionExpiresAt } = await this.createSession(

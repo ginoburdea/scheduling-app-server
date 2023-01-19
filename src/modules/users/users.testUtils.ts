@@ -2,10 +2,10 @@ import { faker } from '@faker-js/faker'
 import { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { AuthDto, AuthRes } from './dto/common.dto'
 
-export const genUserData = (
+export const genUserData = ({
     email = faker.internet.email(),
-    password = faker.internet.password()
-) => ({ email, password })
+    password = faker.internet.password(),
+} = {}) => ({ email, password })
 
 export const registerUser = async (
     app: NestFastifyApplication,

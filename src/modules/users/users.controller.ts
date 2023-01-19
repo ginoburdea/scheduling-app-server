@@ -37,7 +37,6 @@ export class UsersController {
     @Post('log-out')
     @HttpCode(201)
     @UseInterceptors(AuthInterceptor)
-    // @ApiOkResponse({ type: AuthRes })
     async logOut(@Req() req: FastifyRequest) {
         return await this.usersService.logOut(req.sessionId)
     }

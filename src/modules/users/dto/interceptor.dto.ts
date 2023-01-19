@@ -1,4 +1,4 @@
-import { IsString, Matches, MaxLength } from 'class-validator'
+import { IsString, Matches } from 'class-validator'
 
 const bearerHeaderRegex = /^Bearer [a-z0-9]{64}$/i
 
