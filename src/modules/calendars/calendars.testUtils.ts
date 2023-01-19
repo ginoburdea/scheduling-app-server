@@ -1,7 +1,7 @@
 import { PrismaService } from '@/utils/prisma.service'
 import { faker } from '@faker-js/faker'
 import { NestFastifyApplication } from '@nestjs/platform-fastify'
-import { PartialCalendar } from './dto/getCalendar.dto'
+import { PartialCalendar } from './dto/updateCalendar.dto'
 
 const genCalendarUpdates = ({
     businessName = faker.company.name(),
@@ -50,4 +50,19 @@ export const getCalendarId = async (prisma: PrismaService, email: string) => {
         select: { calendars: { select: { publicId: true } } },
     })
     return user.calendars[0].publicId
+}
+
+export const getCalendarInfo = async (
+    app: NestFastifyApplication,
+    calendarId: string
+) => {
+    const res = await app.inject({
+        method: 'GET',
+        url: '/calendars',
+        query: {
+            id: calendarId,
+        },
+    })
+
+    return [res.json(), res.statusCode]
 }

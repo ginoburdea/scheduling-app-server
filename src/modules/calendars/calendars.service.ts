@@ -1,7 +1,7 @@
 import { PrismaService } from '@/utils/prisma.service'
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { calendarsErrors } from './calendars.errors'
-import { PartialCalendar } from './dto/getCalendar.dto'
+import { PartialCalendar } from './dto/updateCalendar.dto'
 
 @Injectable()
 export class CalendarsService {
@@ -39,5 +39,19 @@ export class CalendarsService {
             publicId: undefined,
             id: updatedCalendar.publicId,
         }
+    }
+
+    async getCalendarInfo(calendarPublicId: string) {
+        const calendar = await this.prisma.calendars.findFirst({
+            where: { publicId: calendarPublicId },
+            select: { businessName: true, businessDescription: true },
+        })
+        if (!calendar) {
+            throw new BadRequestException(
+                calendarsErrors.getCalendarInfo.calendarNotFound
+            )
+        }
+
+        return { ...calendar }
     }
 }
