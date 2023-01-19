@@ -3,7 +3,7 @@ import type { MatcherFunction } from 'expect'
 import { plainToInstance, ClassConstructor } from 'class-transformer'
 import { validate } from 'class-validator'
 import { validationOptions } from './validationOptions'
-import { ErrorDto } from './ErrorRes'
+import { ErrorDto } from './error.dto'
 
 const toMatchDto: MatcherFunction<[dto: ClassConstructor<any>]> =
     async function (actual, dto) {

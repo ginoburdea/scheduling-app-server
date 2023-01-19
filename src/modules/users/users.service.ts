@@ -1,5 +1,9 @@
 import { PrismaService } from '@/utils/prisma.service'
-import { BadRequestException, Injectable } from '@nestjs/common'
+import {
+    BadRequestException,
+    Injectable,
+    UnauthorizedException,
+} from '@nestjs/common'
 import { usersErrors } from './users.errors'
 import * as bcrypt from 'bcrypt'
 import * as dayjs from 'dayjs'
@@ -22,6 +26,54 @@ export class UsersService {
         return {
             session: session.publicId,
             sessionExpiresAt: session.expiresAt,
+        }
+    }
+
+    async isLoggedIn(publicSessionId: string, userIp: string) {
+        const session = await this.prisma.sessions.findFirst({
+            where: { publicId: publicSessionId },
+            select: {
+                userIp: true,
+                expiresAt: true,
+                id: true,
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                    },
+                },
+            },
+        })
+        if (!session) {
+            throw new UnauthorizedException(
+                usersErrors.isLoggedIn.sessionNotFound
+            )
+        }
+
+        try {
+            if (session.expiresAt < new Date()) {
+                throw new UnauthorizedException(
+                    usersErrors.isLoggedIn.sessionExpired
+                )
+            }
+
+            const ipsMatch = await bcrypt.compare(userIp, session.userIp)
+            if (!ipsMatch) {
+                throw new UnauthorizedException(
+                    usersErrors.isLoggedIn.sessionHijacked
+                )
+            }
+        } catch (err) {
+            await this.prisma.sessions.delete({
+                where: { id: session.id },
+            })
+
+            throw new UnauthorizedException(err.message)
+        }
+
+        return {
+            sessionId: session.id,
+            user: session.user,
         }
     }
 
@@ -73,5 +125,9 @@ export class UsersService {
             session,
             sessionExpiresAt,
         }
+    }
+
+    async logOut(sessionId: number) {
+        await this.prisma.sessions.delete({ where: { id: sessionId } })
     }
 }
