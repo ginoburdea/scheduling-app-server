@@ -84,13 +84,17 @@ export const getAvailableDays = async (
     return [res.json(), res.statusCode]
 }
 
-export const genAppointmentData = (calendarId: number, date: Date) => ({
+export const genAppointmentData = (
+    calendarId: number,
+    date: Date,
+    minHour = 0
+) => ({
     calendarId,
     clientName: faker.name.fullName(),
     clientPhoneNumber: faker.phone.number(),
     duration: 25,
     onDate: dayjs(date)
-        .set('hour', faker.datatype.number({ max: 23 }))
+        .set('hour', faker.datatype.number({ min: minHour, max: 23 }))
         .set('minutes', faker.datatype.number({ max: 59, precision: 15 }))
         .toDate(),
 })
@@ -111,3 +115,41 @@ export const getAvailableSpots = async (
 
     return [res.json(), res.statusCode]
 }
+
+export const setAppointments = async (
+    prisma: PrismaService,
+    calendarId: number,
+    date: Date,
+    minHour?: number
+) => {
+    await prisma.appointments.createMany({
+        data: Array(10)
+            .fill(null)
+            .map(() => genAppointmentData(calendarId, date, minHour)),
+    })
+}
+
+export const setAppointment = async (
+    app: NestFastifyApplication,
+    calendarId: string,
+    date: Date = new Date()
+) => {
+    const res = await app.inject({
+        method: 'POST',
+        url: '/calendars/set-appointment',
+        payload: {
+            calendarId,
+            date,
+            name: faker.name.fullName(),
+            phoneNumber: faker.phone.number(),
+        },
+    })
+
+    return [res.json(), res.statusCode]
+}
+
+export const getNextMonday = () =>
+    dayjs().startOf('week').add(1, 'week').toDate()
+
+export const getNextSaturday = () =>
+    dayjs().startOf('week').add(6, 'days').toDate()

@@ -7,6 +7,8 @@ import {
     Put,
     Get,
     Query,
+    Post,
+    HttpCode,
 } from '@nestjs/common'
 import { ApiOkResponse, ApiTags, ApiDefaultResponse } from '@nestjs/swagger'
 import { CalendarsService } from './calendars.service'
@@ -22,6 +24,7 @@ import {
     GetAvailableDaysRes,
 } from './dto/getAvailableDays'
 import { GetAvailableSpotsDto } from './dto/getAvailableSpots.dto'
+import { SetAppointmentDto, SetAppointmentRes } from './dto/setAppointment.dto'
 
 @Controller('calendars')
 @ApiTags('calendars')
@@ -61,6 +64,18 @@ export class CalendarsController {
         return await this.calendarsService.getAvailableSpots(
             query.calendarId,
             query.date
+        )
+    }
+
+    @Post('set-appointment')
+    @HttpCode(200)
+    @ApiOkResponse({ type: SetAppointmentRes })
+    async setAppointment(@Body() body: SetAppointmentDto) {
+        return await this.calendarsService.setAppointment(
+            body.calendarId,
+            body.date,
+            body.name,
+            body.phoneNumber
         )
     }
 }

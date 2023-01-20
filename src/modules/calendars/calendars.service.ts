@@ -3,10 +3,21 @@ import { BadRequestException, Injectable } from '@nestjs/common'
 import * as dayjs from 'dayjs'
 import { calendarsErrors } from './calendars.errors'
 import { PartialCalendar } from './dto/updateCalendar.dto'
+import * as aes from 'crypto-js/aes'
 
 @Injectable()
 export class CalendarsService {
     constructor(private prisma: PrismaService) {}
+
+    private militaryTimeToDate(time: string, day: Date) {
+        const [hour, minute] = time.split(':').map(str => +str)
+
+        return dayjs(day)
+            .set('hour', hour)
+            .set('minute', minute)
+            .startOf('minute')
+            .toDate()
+    }
 
     async updateCalendar(
         calendarPublicId: string,
@@ -120,23 +131,34 @@ export class CalendarsService {
         })
         if (appointments.length === 0) return { spots: [] }
 
-        const [openingHour, openingMinute] = calendar.dayStartsAt
-            .split(':')
-            .map(str => +str)
-        const openingTime = dayjs(appointments[0].onDate)
-            .set('hour', openingHour)
-            .set('minute', openingMinute)
-            .startOf('minute')
-            .toDate()
+        // const [openingHour, openingMinute] = calendar.dayStartsAt
+        // const [openingHour, openingMinute] = calendar.dayStartsAt
+        //     .split(':')
+        //     .map(str => +str)
+        // const openingTime = dayjs(appointments[0].onDate)
+        //     .set('hour', openingHour)
+        //     .set('minute', openingMinute)
+        //     .startOf('minute')
+        //     .toDate()
+        const openingTime = this.militaryTimeToDate(
+            calendar.dayStartsAt,
+            selectedDay.toDate()
+            // appointments[0].onDate
+        )
 
-        const [closingHour, closingMinute] = calendar.dayEndsAt
-            .split(':')
-            .map(str => +str)
-        const closingTime = dayjs(appointments[appointments.length - 1].onDate)
-            .set('hour', closingHour)
-            .set('minute', closingMinute)
-            .startOf('minute')
-            .toDate()
+        // const [closingHour, closingMinute] = calendar.dayEndsAt
+        //     .split(':')
+        //     .map(str => +str)
+        // const closingTime = dayjs(appointments[appointments.length - 1].onDate)
+        //     .set('hour', closingHour)
+        //     .set('minute', closingMinute)
+        //     .startOf('minute')
+        //     .toDate()
+        const closingTime = this.militaryTimeToDate(
+            calendar.dayEndsAt,
+            selectedDay.toDate()
+            // appointments[appointments.length - 1].onDate
+        )
 
         const trueAppointmentLength =
             calendar.bookingDuration + calendar.breakBetweenBookings
@@ -169,5 +191,120 @@ export class CalendarsService {
         }
 
         return { spots }
+    }
+
+    async setAppointment(
+        calendarId: string,
+        date: Date,
+        name: string,
+        phoneNumber: string
+    ) {
+        const calendar = await this.prisma.calendars.findFirst({
+            where: { publicId: calendarId },
+            select: {
+                id: true,
+                bookingDuration: true,
+                breakBetweenBookings: true,
+                dayStartsAt: true,
+                dayEndsAt: true,
+                workingDays: true,
+            },
+        })
+        if (!calendar) {
+            throw new BadRequestException(
+                calendarsErrors.setAppointment.calendarNotFound
+            )
+        }
+
+        const selectedDay = dayjs(date)
+        if (!calendar.workingDays.includes(selectedDay.get('day'))) {
+            throw new BadRequestException(
+                calendarsErrors.setAppointment.cannotBookOnNonWorkingDay
+            )
+        }
+
+        const openingTime = this.militaryTimeToDate(calendar.dayStartsAt, date)
+        const closingTime = this.militaryTimeToDate(calendar.dayEndsAt, date)
+
+        const appointments = await this.prisma.appointments.findMany({
+            where: {
+                onDate: {
+                    gte: selectedDay.startOf('day').toDate(),
+                    lte: selectedDay.endOf('day').toDate(),
+                },
+                calendarId: calendar.id,
+            },
+            select: { onDate: true, duration: true },
+            orderBy: { onDate: 'asc' },
+        })
+
+        const apps = [
+            ...appointments,
+            { onDate: openingTime },
+            { onDate: closingTime },
+            { onDate: date },
+        ].sort((a, b) => +a.onDate - +b.onDate)
+
+        const openingTimeIndex = apps.findIndex(
+            app => app.onDate == openingTime
+        )
+        const closingTimeIndex = apps.findIndex(
+            app => app.onDate == closingTime
+        )
+        const currentTimeIndex = apps.findIndex(app => app.onDate == date)
+
+        // console.log(apps.map(app => app.onDate))
+        // console.log(openingTime, closingTime, date)
+        // console.log(openingTimeIndex, closingTimeIndex, currentTimeIndex)
+
+        if (
+            currentTimeIndex < openingTimeIndex ||
+            currentTimeIndex > closingTimeIndex
+        ) {
+            throw new BadRequestException(
+                calendarsErrors.setAppointment.cannotBookOutsideBusinessHours
+            )
+        }
+
+        const previousTime = apps[currentTimeIndex - 1].onDate
+        const nextTime = apps[currentTimeIndex + 1].onDate
+
+        const trueAppointmentLength =
+            calendar.bookingDuration + calendar.breakBetweenBookings
+        if (
+            dayjs(date).add(trueAppointmentLength, 'minutes').isAfter(nextTime)
+        ) {
+            throw new BadRequestException(
+                calendarsErrors.setAppointment.tooLate
+            )
+        }
+
+        for (let i = 0; true; i++) {
+            const temp = dayjs(previousTime)
+                .add(i * trueAppointmentLength, 'minutes')
+                .toDate()
+
+            if (+temp - +date === 0) break
+            if (+temp > +date) {
+                throw new BadRequestException(
+                    calendarsErrors.setAppointment.cannotBookAnyTime
+                )
+            }
+        }
+
+        const hashedPhoneNumber = aes
+            .encrypt(phoneNumber, process.env.DATABASE_ENCRYPTION_KEY)
+            .toString()
+        await this.prisma.appointments.create({
+            data: {
+                calendarId: calendar.id,
+                clientName: name,
+                clientPhoneNumber: hashedPhoneNumber,
+                onDate: date,
+                duration: calendar.bookingDuration,
+            },
+        })
+
+        return { name, phoneNumber, date }
     }
 }

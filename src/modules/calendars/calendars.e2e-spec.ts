@@ -6,11 +6,14 @@ import { CalendarsModule } from './calendars.module'
 import { registerUser } from '../users/users.testUtils'
 import { UpdateCalendarRes } from './dto/updateCalendar.dto'
 import {
-    genAppointmentData,
     getAvailableDays,
     getAvailableSpots,
     getCalendarId,
     getCalendarInfo,
+    getNextMonday,
+    getNextSaturday,
+    setAppointment,
+    setAppointments,
     updateCalendar,
 } from './calendars.testUtils'
 import { faker } from '@faker-js/faker'
@@ -19,6 +22,7 @@ import { GetAvailableDaysRes } from './dto/getAvailableDays'
 import { GetCalendarInfoRes } from './dto/getCalendarInfo.dto'
 import { GetAvailableSpotsRes } from './dto/getAvailableSpots.dto'
 import * as dayjs from 'dayjs'
+import { SetAppointmentRes } from './dto/setAppointment.dto'
 
 describe('/calendars', () => {
     let app: NestFastifyApplication
@@ -156,14 +160,9 @@ describe('/calendars', () => {
                 prisma,
                 registerRes.userEmail
             )
-            const nextMonday = dayjs().startOf('week').add(1, 'week').toDate()
+            const nextMonday = getNextMonday()
 
-            await prisma.appointments.createMany({
-                data: Array(10)
-                    .fill(null)
-                    .map(() => genAppointmentData(calendarId, nextMonday)),
-            })
-
+            await setAppointments(prisma, calendarId, nextMonday)
             const [body, statusCode] = await getAvailableSpots(
                 app,
                 publicCalendarId,
@@ -187,6 +186,163 @@ describe('/calendars', () => {
             expect(statusCode).toEqual(400)
             await expect(body).toMatchError(
                 calendarsErrors.getAvailableSpots.calendarNotFound
+            )
+        })
+    })
+
+    describe('/set-appointment (POST)', () => {
+        it('Should get available spots on the selected date', async () => {
+            const [registerRes] = await registerUser(app)
+            const [publicCalendarId, calendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            const nextMonday = getNextMonday()
+            await setAppointments(prisma, calendarId, nextMonday, 12)
+
+            const [body, statusCode] = await setAppointment(
+                app,
+                publicCalendarId,
+                dayjs(nextMonday).set('hour', 10).toDate()
+            )
+
+            expect(statusCode).toEqual(200)
+            await expect(body).toMatchDto(SetAppointmentRes)
+        })
+
+        it('Should throw when the calendar does not exist', async () => {
+            const fakeCalendarId = faker.datatype.uuid()
+            const futureDate = faker.date.soon()
+
+            const [body, statusCode] = await setAppointment(
+                app,
+                fakeCalendarId,
+                futureDate
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.setAppointment.calendarNotFound
+            )
+        })
+
+        it('Should throw when the appointment is not on a working day', async () => {
+            const [registerRes] = await registerUser(app)
+            const [publicCalendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            const nextSaturday = getNextSaturday()
+
+            const [body, statusCode] = await setAppointment(
+                app,
+                publicCalendarId,
+                dayjs(nextSaturday).set('hour', 10).toDate()
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.setAppointment.cannotBookOnNonWorkingDay
+            )
+        })
+
+        it('Should throw when the appointment is not within the business hours', async () => {
+            const [registerRes] = await registerUser(app)
+            const [publicCalendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            const nextMonday = getNextMonday()
+
+            const [body, statusCode] = await setAppointment(
+                app,
+                publicCalendarId,
+                dayjs(nextMonday).set('hour', 3).toDate()
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.setAppointment.cannotBookOutsideBusinessHours
+            )
+        })
+
+        it('Should throw when the appointment is before the business hours', async () => {
+            const [registerRes] = await registerUser(app)
+            const [publicCalendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            const nextMonday = getNextMonday()
+
+            const [body, statusCode] = await setAppointment(
+                app,
+                publicCalendarId,
+                dayjs(nextMonday).set('hour', 2).toDate()
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.setAppointment.cannotBookOutsideBusinessHours
+            )
+        })
+
+        it('Should throw when the appointment is after the business hours', async () => {
+            const [registerRes] = await registerUser(app)
+            const [publicCalendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            const nextMonday = getNextMonday()
+
+            const [body, statusCode] = await setAppointment(
+                app,
+                publicCalendarId,
+                dayjs(nextMonday).set('hour', 20).toDate()
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.setAppointment.cannotBookOutsideBusinessHours
+            )
+        })
+
+        it('Should throw when the appointment is too close to the end of day', async () => {
+            const [registerRes] = await registerUser(app)
+            const [publicCalendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            const nextMonday = getNextMonday()
+
+            const [body, statusCode] = await setAppointment(
+                app,
+                publicCalendarId,
+                dayjs(nextMonday).set('hour', 16).set('minute', 45).toDate()
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.setAppointment.tooLate
+            )
+        })
+
+        it('Should throw when the appointment does not respect the previous appointments', async () => {
+            const [registerRes] = await registerUser(app)
+            const [publicCalendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            const nextMonday = getNextMonday()
+
+            const [body, statusCode] = await setAppointment(
+                app,
+                publicCalendarId,
+                dayjs(nextMonday).set('hour', 9).set('minute', 5).toDate()
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.setAppointment.cannotBookAnyTime
             )
         })
     })
