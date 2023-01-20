@@ -6,7 +6,9 @@ import { CalendarsModule } from './calendars.module'
 import { registerUser } from '../users/users.testUtils'
 import { UpdateCalendarRes } from './dto/updateCalendar.dto'
 import {
+    genAppointmentData,
     getAvailableDays,
+    getAvailableSpots,
     getCalendarId,
     getCalendarInfo,
     updateCalendar,
@@ -15,6 +17,8 @@ import { faker } from '@faker-js/faker'
 import { calendarsErrors } from './calendars.errors'
 import { GetAvailableDaysRes } from './dto/getAvailableDays'
 import { GetCalendarInfoRes } from './dto/getCalendarInfo.dto'
+import { GetAvailableSpotsRes } from './dto/getAvailableSpots.dto'
+import * as dayjs from 'dayjs'
 
 describe('/calendars', () => {
     let app: NestFastifyApplication
@@ -113,8 +117,8 @@ describe('/calendars', () => {
         })
     })
 
-    describe('/day-availability (GET)', () => {
-        it('Should get available spots in the future', async () => {
+    describe('/available-days (GET)', () => {
+        it('Should get available days', async () => {
             const [registerRes] = await registerUser(app)
             const [publicCalendarId] = await getCalendarId(
                 prisma,
@@ -141,6 +145,48 @@ describe('/calendars', () => {
             expect(statusCode).toEqual(400)
             await expect(body).toMatchError(
                 calendarsErrors.getAvailableDays.calendarNotFound
+            )
+        })
+    })
+
+    describe('/available-spots (GET)', () => {
+        it('Should get available spots on the selected date', async () => {
+            const [registerRes] = await registerUser(app)
+            const [publicCalendarId, calendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            const nextMonday = dayjs().startOf('week').add(1, 'week').toDate()
+
+            await prisma.appointments.createMany({
+                data: Array(10)
+                    .fill(null)
+                    .map(() => genAppointmentData(calendarId, nextMonday)),
+            })
+
+            const [body, statusCode] = await getAvailableSpots(
+                app,
+                publicCalendarId,
+                nextMonday
+            )
+
+            expect(statusCode).toEqual(200)
+            await expect(body).toMatchDto(GetAvailableSpotsRes)
+        })
+
+        it('Should throw when the calendar does not exist', async () => {
+            const fakeCalendarId = faker.datatype.uuid()
+            const futureDate = faker.date.soon()
+
+            const [body, statusCode] = await getAvailableSpots(
+                app,
+                fakeCalendarId,
+                futureDate
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.getAvailableSpots.calendarNotFound
             )
         })
     })

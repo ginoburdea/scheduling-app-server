@@ -2,6 +2,7 @@ import { PrismaService } from '@/utils/prisma.service'
 import { faker } from '@faker-js/faker'
 import { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { PartialCalendar } from './dto/updateCalendar.dto'
+import * as dayjs from 'dayjs'
 
 const genCalendarUpdates = ({
     businessName = faker.company.name(),
@@ -78,6 +79,34 @@ export const getAvailableDays = async (
         method: 'GET',
         url: '/calendars/available-days',
         query: { calendarId },
+    })
+
+    return [res.json(), res.statusCode]
+}
+
+export const genAppointmentData = (calendarId: number, date: Date) => ({
+    calendarId,
+    clientName: faker.name.fullName(),
+    clientPhoneNumber: faker.phone.number(),
+    duration: 25,
+    onDate: dayjs(date)
+        .set('hour', faker.datatype.number({ max: 23 }))
+        .set('minutes', faker.datatype.number({ max: 59, precision: 15 }))
+        .toDate(),
+})
+
+export const getAvailableSpots = async (
+    app: NestFastifyApplication,
+    calendarId: string,
+    date: Date = new Date()
+) => {
+    const res = await app.inject({
+        method: 'GET',
+        url: '/calendars/available-spots',
+        query: {
+            calendarId,
+            date: date.toISOString(),
+        },
     })
 
     return [res.json(), res.statusCode]

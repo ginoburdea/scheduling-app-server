@@ -83,4 +83,91 @@ export class CalendarsService {
 
         return { dates: availableDays }
     }
+
+    async getAvailableSpots(calendarPublicId: string, day: Date | string) {
+        const calendar = await this.prisma.calendars.findFirst({
+            where: { publicId: calendarPublicId },
+            select: {
+                id: true,
+                dayStartsAt: true,
+                dayEndsAt: true,
+                bookingDuration: true,
+                breakBetweenBookings: true,
+                workingDays: true,
+            },
+        })
+        if (!calendar) {
+            throw new BadRequestException(
+                calendarsErrors.getAvailableSpots.calendarNotFound
+            )
+        }
+
+        const selectedDay = dayjs(day)
+        if (!calendar.workingDays.includes(selectedDay.get('day'))) {
+            return { spots: [] }
+        }
+
+        const appointments = await this.prisma.appointments.findMany({
+            where: {
+                onDate: {
+                    gte: selectedDay.startOf('day').toDate(),
+                    lte: selectedDay.endOf('day').toDate(),
+                },
+                calendarId: calendar.id,
+            },
+            select: { onDate: true, duration: true },
+            orderBy: { onDate: 'asc' },
+        })
+        if (appointments.length === 0) return { spots: [] }
+
+        const [openingHour, openingMinute] = calendar.dayStartsAt
+            .split(':')
+            .map(str => +str)
+        const openingTime = dayjs(appointments[0].onDate)
+            .set('hour', openingHour)
+            .set('minute', openingMinute)
+            .startOf('minute')
+            .toDate()
+
+        const [closingHour, closingMinute] = calendar.dayEndsAt
+            .split(':')
+            .map(str => +str)
+        const closingTime = dayjs(appointments[appointments.length - 1].onDate)
+            .set('hour', closingHour)
+            .set('minute', closingMinute)
+            .startOf('minute')
+            .toDate()
+
+        const trueAppointmentLength =
+            calendar.bookingDuration + calendar.breakBetweenBookings
+        const spots: Date[] = []
+        for (let i = 0; i < appointments.length; i++) {
+            const app = appointments[i]
+            const tempCurrent = dayjs(app.onDate)
+                .add(app.duration, 'minutes')
+                .add(calendar.breakBetweenBookings, 'minutes')
+                .toDate()
+
+            const current =
+                tempCurrent < openingTime ? openingTime : tempCurrent
+
+            const tempNext = appointments[i + 1]
+            const next =
+                tempNext && tempNext.onDate < closingTime
+                    ? tempNext.onDate
+                    : closingTime
+
+            const minutesUntilNextApp = (+next - +current) / (1000 * 60)
+            const spotsCount = minutesUntilNextApp / trueAppointmentLength
+            for (let j = 0; j < spotsCount; j++) {
+                spots.push(
+                    dayjs(current)
+                        .add(j * trueAppointmentLength, 'minutes')
+                        .toDate()
+                )
+            }
+        }
+
+        return { spots }
+    }
 }

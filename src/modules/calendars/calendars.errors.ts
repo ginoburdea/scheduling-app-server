@@ -9,4 +9,7 @@ export const calendarsErrors = {
     getAvailableDays: {
         calendarNotFound: 'calendar not found',
     },
+    getAvailableSpots: {
+        calendarNotFound: 'calendar not found',
+    },
 }
