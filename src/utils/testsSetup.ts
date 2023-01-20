@@ -8,7 +8,10 @@ import { ErrorDto } from './error.dto'
 const toMatchDto: MatcherFunction<[dto: ClassConstructor<any>]> =
     async function (actual, dto) {
         const instance = plainToInstance(dto, actual)
-        const errors = await validate(instance, validationOptions)
+        const errors = await validate(instance, {
+            ...validationOptions,
+            forbidNonWhitelisted: true,
+        })
 
         const pass = errors.length === 0
         return {

@@ -24,12 +24,11 @@ export class AuthInterceptor implements NestInterceptor {
         })
 
         const publicSessionId = headers.authorization.split(' ')[1]
-        const { user, sessionId } = await this.usersService.isLoggedIn(
-            publicSessionId,
-            req.ip
-        )
+        const { user, sessionId, calendarId } =
+            await this.usersService.isLoggedIn(publicSessionId, req.ip)
         req.user = user
         req.sessionId = sessionId
+        req.calendarId = calendarId
 
         return next.handle()
     }

@@ -6,12 +6,14 @@ import { CalendarsModule } from './calendars.module'
 import { registerUser } from '../users/users.testUtils'
 import { UpdateCalendarRes } from './dto/updateCalendar.dto'
 import {
+    getAvailableDays,
     getCalendarId,
     getCalendarInfo,
     updateCalendar,
 } from './calendars.testUtils'
 import { faker } from '@faker-js/faker'
 import { calendarsErrors } from './calendars.errors'
+import { GetAvailableDaysRes } from './dto/getAvailableDays'
 import { GetCalendarInfoRes } from './dto/getCalendarInfo.dto'
 
 describe('/calendars', () => {
@@ -29,7 +31,7 @@ describe('/calendars', () => {
     describe('/ (PUT)', () => {
         it('Should update a calendar successfully', async () => {
             const [registerRes] = await registerUser(app)
-            const calendarId = await getCalendarId(
+            const [calendarId] = await getCalendarId(
                 prisma,
                 registerRes.userEmail
             )
@@ -62,7 +64,7 @@ describe('/calendars', () => {
 
         it('Should throw when the user does not own the calendar', async () => {
             const [registerRes1] = await registerUser(app)
-            const calendarId = await getCalendarId(
+            const [calendarId] = await getCalendarId(
                 prisma,
                 registerRes1.userEmail
             )
@@ -85,7 +87,7 @@ describe('/calendars', () => {
     describe('/ (GET)', () => {
         it('Should successfully get info about a calendar', async () => {
             const [registerRes] = await registerUser(app)
-            const calendarId = await getCalendarId(
+            const [calendarId] = await getCalendarId(
                 prisma,
                 registerRes.userEmail
             )
@@ -107,6 +109,38 @@ describe('/calendars', () => {
             expect(statusCode).toEqual(400)
             await expect(body).toMatchError(
                 calendarsErrors.getCalendarInfo.calendarNotFound
+            )
+        })
+    })
+
+    describe('/day-availability (GET)', () => {
+        it('Should get available spots in the future', async () => {
+            const [registerRes] = await registerUser(app)
+            const [publicCalendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+
+            const [body, statusCode] = await getAvailableDays(
+                app,
+                publicCalendarId
+            )
+
+            expect(statusCode).toEqual(200)
+            await expect(body).toMatchDto(GetAvailableDaysRes)
+        })
+
+        it('Should throw when the calendar does not exist', async () => {
+            const fakeCalendarId = faker.datatype.uuid()
+
+            const [body, statusCode] = await getAvailableDays(
+                app,
+                fakeCalendarId
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.getAvailableDays.calendarNotFound
             )
         })
     })

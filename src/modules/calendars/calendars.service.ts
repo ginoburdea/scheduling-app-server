@@ -1,5 +1,6 @@
 import { PrismaService } from '@/utils/prisma.service'
 import { BadRequestException, Injectable } from '@nestjs/common'
+import * as dayjs from 'dayjs'
 import { calendarsErrors } from './calendars.errors'
 import { PartialCalendar } from './dto/updateCalendar.dto'
 
@@ -37,7 +38,7 @@ export class CalendarsService {
             createdAt: undefined,
             userId: undefined,
             publicId: undefined,
-            id: updatedCalendar.publicId,
+            id: undefined,
         }
     }
 
@@ -53,5 +54,33 @@ export class CalendarsService {
         }
 
         return { ...calendar }
+    }
+
+    async getAvailableDays(calendarPublicId: string) {
+        const calendar = await this.prisma.calendars.findFirst({
+            where: { publicId: calendarPublicId },
+            select: {
+                id: true,
+                bookInAdvance: true,
+                workingDays: true,
+            },
+        })
+        if (!calendar) {
+            throw new BadRequestException(
+                calendarsErrors.getAvailableDays.calendarNotFound
+            )
+        }
+
+        const today = dayjs().startOf('day')
+        const availableDays = []
+        for (let i = 0; i < calendar.bookInAdvance; i++) {
+            const currentDay = today.add(i, 'days')
+
+            if (calendar.workingDays.includes(currentDay.get('day'))) {
+                availableDays.push(currentDay.toDate())
+            }
+        }
+
+        return { dates: availableDays }
     }
 }

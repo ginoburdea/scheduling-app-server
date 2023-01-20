@@ -6,4 +6,7 @@ export const calendarsErrors = {
     getCalendarInfo: {
         calendarNotFound: 'calendar not found',
     },
+    getAvailableDays: {
+        calendarNotFound: 'calendar not found',
+    },
 }

@@ -44,12 +44,15 @@ export const updateCalendar = async (
     return [res.json(), res.statusCode]
 }
 
-export const getCalendarId = async (prisma: PrismaService, email: string) => {
+export const getCalendarId = async (
+    prisma: PrismaService,
+    email: string
+): Promise<[string, number]> => {
     const user = await prisma.users.findFirst({
         where: { email },
-        select: { calendars: { select: { publicId: true } } },
+        select: { calendars: { select: { publicId: true, id: true } } },
     })
-    return user.calendars[0].publicId
+    return [user.calendars[0].publicId, user.calendars[0].id]
 }
 
 export const getCalendarInfo = async (
@@ -62,6 +65,19 @@ export const getCalendarInfo = async (
         query: {
             id: calendarId,
         },
+    })
+
+    return [res.json(), res.statusCode]
+}
+
+export const getAvailableDays = async (
+    app: NestFastifyApplication,
+    calendarId: string
+) => {
+    const res = await app.inject({
+        method: 'GET',
+        url: '/calendars/available-days',
+        query: { calendarId },
     })
 
     return [res.json(), res.statusCode]

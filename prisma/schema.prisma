@@ -29,18 +29,31 @@ model sessions {
 }
 
 model calendars {
-  id                   Int      @id @default(autoincrement())
-  publicId             String   @default(uuid())
-  businessName         String   @default("Sample name")
-  businessDescription  String   @default("Sample description")
-  dayStartsAt          String   @default("9:00")
-  dayEndsAt            String   @default("17:00")
-  breakBetweenBookings Int      @default(5)
-  bookingDuration      Int      @default(25)
-  bookInAdvance        Int      @default(14)
-  workingDays          Int[]    @default([0, 1, 2, 3, 4])
+  id                   Int            @id @default(autoincrement())
+  publicId             String         @default(uuid())
+  businessName         String         @default("Sample name")
+  businessDescription  String         @default("Sample description")
+  dayStartsAt          String         @default("9:00")
+  dayEndsAt            String         @default("17:00")
+  breakBetweenBookings Int            @default(5)
+  bookingDuration      Int            @default(25)
+  bookInAdvance        Int            @default(14)
+  workingDays          Int[]          @default([0, 1, 2, 3, 4])
   userId               Int
-  user                 users    @relation(fields: [userId], references: [id])
-  updatedAt            DateTime @updatedAt
-  createdAt            DateTime @default(now())
+  user                 users          @relation(fields: [userId], references: [id])
+  appointments         appointments[]
+  updatedAt            DateTime       @updatedAt
+  createdAt            DateTime       @default(now())
+}
+
+model appointments {
+  id                Int       @id @default(autoincrement())
+  clientName        String
+  clientPhoneNumber String
+  onDate            DateTime
+  duration          Int
+  calendarId        Int
+  calendar          calendars @relation(fields: [calendarId], references: [id])
+  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime  @default(now())
 }

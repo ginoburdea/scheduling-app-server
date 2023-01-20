@@ -1,7 +1,7 @@
 {
     "name": "scheduling-app-server",
     "private": true,
-    "version": "0.5.0",
+    "version": "0.6.0",
     "license": "MIT",
     "scripts": {
         "dev": "nest start --watch",
@@ -9,11 +9,10 @@
         "build": "nest build",
         "prod": "node dist/main",
         "lint": "eslint \"src/**/*.{ts,js}\" --fix",
-        "test": "jest  --watchAll",
+        "test": "jest --watchAll",
         "test:once": "jest",
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-        "test:e2e": "jest --config ./test/jest-e2e.json",
         "format": "prettier --write .",
         "prepare": "husky install"
     },

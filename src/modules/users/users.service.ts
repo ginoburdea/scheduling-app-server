@@ -40,6 +40,10 @@ export class UsersService {
                     select: {
                         id: true,
                         email: true,
+                        calendars: {
+                            select: { id: true },
+                            take: 1,
+                        },
                     },
                 },
             },
@@ -74,6 +78,7 @@ export class UsersService {
         return {
             sessionId: session.id,
             user: session.user,
+            calendarId: session.user.calendars[0].id,
         }
     }
 
