@@ -12,6 +12,7 @@ export const buildApp = async (Module: any) => {
         new FastifyAdapter()
     )
     app.useGlobalPipes(new ValidationPipe(validationOptions))
+    app.enableCors({ origin: process.env.CORS_ORIGIN })
 
     const config = new DocumentBuilder()
         .setTitle('scheduling-app-server docs')
