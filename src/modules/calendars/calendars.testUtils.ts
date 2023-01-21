@@ -153,3 +153,22 @@ export const getNextMonday = () =>
 
 export const getNextSaturday = () =>
     dayjs().startOf('week').add(6, 'days').toDate()
+
+export const getAppointments = async (
+    app: NestFastifyApplication,
+    sessionId: string
+) => {
+    const res = await app.inject({
+        method: 'GET',
+        url: '/calendars/appointments',
+        query: {
+            month: '' + new Date().getMonth() + 1,
+            year: '' + new Date().getFullYear(),
+        },
+        headers: {
+            authorization: `Bearer ${sessionId}`,
+        },
+    })
+
+    return [res.json(), res.statusCode]
+}

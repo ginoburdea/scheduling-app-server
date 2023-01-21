@@ -6,6 +6,7 @@ import { CalendarsModule } from './calendars.module'
 import { registerUser } from '../users/users.testUtils'
 import { UpdateCalendarRes } from './dto/updateCalendar.dto'
 import {
+    getAppointments,
     getAvailableDays,
     getAvailableSpots,
     getCalendarId,
@@ -23,6 +24,7 @@ import { GetCalendarInfoRes } from './dto/getCalendarInfo.dto'
 import { GetAvailableSpotsRes } from './dto/getAvailableSpots.dto'
 import * as dayjs from 'dayjs'
 import { SetAppointmentRes } from './dto/setAppointment.dto'
+import { GetAppointmentsRes } from './dto/getAppointments.dto'
 
 describe('/calendars', () => {
     let app: NestFastifyApplication
@@ -344,6 +346,30 @@ describe('/calendars', () => {
             await expect(body).toMatchError(
                 calendarsErrors.setAppointment.cannotBookAnyTime
             )
+        })
+    })
+
+    describe('/calendars/appointments (GET)', () => {
+        it('Should update a calendar successfully', async () => {
+            const [registerRes] = await registerUser(app)
+            const [, calendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            await setAppointments(prisma, calendarId, new Date())
+            await setAppointments(
+                prisma,
+                calendarId,
+                dayjs().add(1, 'day').toDate()
+            )
+
+            const [body, statusCode] = await getAppointments(
+                app,
+                registerRes.session
+            )
+
+            expect(statusCode).toEqual(200)
+            await expect(body).toMatchDto(GetAppointmentsRes)
         })
     })
 })

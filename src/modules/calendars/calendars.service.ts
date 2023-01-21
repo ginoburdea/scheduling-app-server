@@ -131,33 +131,13 @@ export class CalendarsService {
         })
         if (appointments.length === 0) return { spots: [] }
 
-        // const [openingHour, openingMinute] = calendar.dayStartsAt
-        // const [openingHour, openingMinute] = calendar.dayStartsAt
-        //     .split(':')
-        //     .map(str => +str)
-        // const openingTime = dayjs(appointments[0].onDate)
-        //     .set('hour', openingHour)
-        //     .set('minute', openingMinute)
-        //     .startOf('minute')
-        //     .toDate()
         const openingTime = this.militaryTimeToDate(
             calendar.dayStartsAt,
             selectedDay.toDate()
-            // appointments[0].onDate
         )
-
-        // const [closingHour, closingMinute] = calendar.dayEndsAt
-        //     .split(':')
-        //     .map(str => +str)
-        // const closingTime = dayjs(appointments[appointments.length - 1].onDate)
-        //     .set('hour', closingHour)
-        //     .set('minute', closingMinute)
-        //     .startOf('minute')
-        //     .toDate()
         const closingTime = this.militaryTimeToDate(
             calendar.dayEndsAt,
             selectedDay.toDate()
-            // appointments[appointments.length - 1].onDate
         )
 
         const trueAppointmentLength =
@@ -253,10 +233,6 @@ export class CalendarsService {
         )
         const currentTimeIndex = apps.findIndex(app => app.onDate == date)
 
-        // console.log(apps.map(app => app.onDate))
-        // console.log(openingTime, closingTime, date)
-        // console.log(openingTimeIndex, closingTimeIndex, currentTimeIndex)
-
         if (
             currentTimeIndex < openingTimeIndex ||
             currentTimeIndex > closingTimeIndex
@@ -306,5 +282,45 @@ export class CalendarsService {
         })
 
         return { name, phoneNumber, date }
+    }
+
+    async getAppointments(calendarId: number, month: number, year: number) {
+        const date = dayjs()
+            .set('month', month - 1)
+            .set('year', year)
+
+        const appointments = await this.prisma.appointments.findMany({
+            where: {
+                calendarId,
+                onDate: {
+                    gte: date.startOf('month').toDate(),
+                    lte: date.endOf('month').toDate(),
+                },
+            },
+            select: {
+                onDate: true,
+                duration: true,
+            },
+        })
+
+        const groups = {}
+        for (const appointment of appointments) {
+            const dateStr = dayjs(appointment.onDate).format('YYYY-MM-DD')
+
+            if (!groups[dateStr]) groups[dateStr] = []
+            groups[dateStr].push({
+                startsAt: appointment.onDate,
+                endsAt: dayjs(appointment.onDate)
+                    .add(appointment.duration, 'minutes')
+                    .toDate(),
+            })
+        }
+
+        return {
+            appointments: Object.keys(groups).map(key => ({
+                day: key,
+                appointments: groups[key],
+            })),
+        }
     }
 }
