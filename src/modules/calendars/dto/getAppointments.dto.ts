@@ -5,10 +5,8 @@ import {
     IsDateString,
     IsInt,
     IsString,
-    IsUUID,
     Max,
     Min,
-    Validate,
     ValidateNested,
 } from 'class-validator'
 

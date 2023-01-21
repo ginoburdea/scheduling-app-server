@@ -4,4 +4,4 @@
 exec >/dev/tty 2>&1
 
 npm run test:once 
-npx lint-staged
+npx lint-staged --concurrent false
