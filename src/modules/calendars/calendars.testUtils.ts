@@ -172,3 +172,22 @@ export const getAppointments = async (
 
     return [res.json(), res.statusCode]
 }
+
+export const getAppointmentInfo = async (
+    app: NestFastifyApplication,
+    sessionId: string,
+    appointmentId: number
+) => {
+    const res = await app.inject({
+        method: 'GET',
+        url: '/calendars/appointment',
+        query: {
+            appointmentId: '' + appointmentId,
+        },
+        headers: {
+            authorization: `Bearer ${sessionId}`,
+        },
+    })
+
+    return [res.json(), res.statusCode]
+}

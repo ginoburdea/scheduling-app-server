@@ -21,4 +21,7 @@ export const calendarsErrors = {
         tooLate: 'cannot book at that time',
         cannotBookAnyTime: 'cannot book this time',
     },
+    getAppointmentInfo: {
+        appointmentNotFound: 'appointment not found',
+    },
 }

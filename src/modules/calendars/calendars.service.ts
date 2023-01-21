@@ -298,6 +298,7 @@ export class CalendarsService {
                 },
             },
             select: {
+                id: true,
                 onDate: true,
                 duration: true,
             },
@@ -309,6 +310,7 @@ export class CalendarsService {
 
             if (!groups[dateStr]) groups[dateStr] = []
             groups[dateStr].push({
+                id: appointment.id,
                 startsAt: appointment.onDate,
                 endsAt: dayjs(appointment.onDate)
                     .add(appointment.duration, 'minutes')
@@ -322,5 +324,19 @@ export class CalendarsService {
                 appointments: groups[key],
             })),
         }
+    }
+
+    async getAppointmentInfo(calendarId: number, appointmentId: number) {
+        const appointment = await this.prisma.appointments.findFirst({
+            where: { id: appointmentId, calendarId },
+            select: { clientName: true, clientPhoneNumber: true },
+        })
+        if (!appointment) {
+            throw new BadRequestException(
+                calendarsErrors.getAppointmentInfo.appointmentNotFound
+            )
+        }
+
+        return { ...appointment }
     }
 }

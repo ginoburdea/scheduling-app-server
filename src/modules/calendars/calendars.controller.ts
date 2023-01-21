@@ -22,13 +22,17 @@ import {
 import {
     GetAvailableDaysDto,
     GetAvailableDaysRes,
-} from './dto/getAvailableDays'
+} from './dto/getAvailableDays.dto'
 import { GetAvailableSpotsDto } from './dto/getAvailableSpots.dto'
 import { SetAppointmentDto, SetAppointmentRes } from './dto/setAppointment.dto'
 import {
     GetAppointmentsDto,
     GetAppointmentsRes,
 } from './dto/getAppointments.dto'
+import {
+    GetAppointmentInfoDto,
+    GetAppointmentInfoRes,
+} from './dto/getAppointmentInfo.dto'
 
 @Controller('calendars')
 @ApiTags('calendars')
@@ -94,6 +98,19 @@ export class CalendarsController {
             req.calendarId,
             query.month,
             query.year
+        )
+    }
+
+    @Get('appointment')
+    @UseInterceptors(AuthInterceptor)
+    @ApiOkResponse({ type: GetAppointmentInfoRes })
+    async getAppointmentInfo(
+        @Query() query: GetAppointmentInfoDto,
+        @Req() req: FastifyRequest
+    ) {
+        return await this.calendarsService.getAppointmentInfo(
+            req.calendarId,
+            query.appointmentId
         )
     }
 }

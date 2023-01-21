@@ -26,6 +26,10 @@ export class GetAppointmentsDto {
 
 class MiniAppointment {
     @ApiProperty()
+    @IsInt()
+    id: number
+
+    @ApiProperty()
     @IsDateString()
     startsAt: Date
 

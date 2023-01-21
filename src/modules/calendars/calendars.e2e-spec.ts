@@ -6,6 +6,7 @@ import { CalendarsModule } from './calendars.module'
 import { registerUser } from '../users/users.testUtils'
 import { UpdateCalendarRes } from './dto/updateCalendar.dto'
 import {
+    getAppointmentInfo,
     getAppointments,
     getAvailableDays,
     getAvailableSpots,
@@ -19,12 +20,13 @@ import {
 } from './calendars.testUtils'
 import { faker } from '@faker-js/faker'
 import { calendarsErrors } from './calendars.errors'
-import { GetAvailableDaysRes } from './dto/getAvailableDays'
+import { GetAvailableDaysRes } from './dto/getAvailableDays.dto'
 import { GetCalendarInfoRes } from './dto/getCalendarInfo.dto'
 import { GetAvailableSpotsRes } from './dto/getAvailableSpots.dto'
 import * as dayjs from 'dayjs'
 import { SetAppointmentRes } from './dto/setAppointment.dto'
 import { GetAppointmentsRes } from './dto/getAppointments.dto'
+import { GetAppointmentInfoRes } from './dto/getAppointmentInfo.dto'
 
 describe('/calendars', () => {
     let app: NestFastifyApplication
@@ -350,7 +352,7 @@ describe('/calendars', () => {
     })
 
     describe('/calendars/appointments (GET)', () => {
-        it('Should update a calendar successfully', async () => {
+        it('Should successfully get appointments in the selected month', async () => {
             const [registerRes] = await registerUser(app)
             const [, calendarId] = await getCalendarId(
                 prisma,
@@ -370,6 +372,47 @@ describe('/calendars', () => {
 
             expect(statusCode).toEqual(200)
             await expect(body).toMatchDto(GetAppointmentsRes)
+        })
+    })
+
+    describe('/calendars/appointment (GET)', () => {
+        it('Should successfully get the info of an appointment', async () => {
+            const [registerRes] = await registerUser(app)
+            const [, calendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            const nextMonday = getNextMonday()
+            await setAppointments(prisma, calendarId, nextMonday)
+            const appointment = await prisma.appointments.findFirst({
+                where: { calendarId },
+                select: { id: true },
+            })
+
+            const [body, statusCode] = await getAppointmentInfo(
+                app,
+                registerRes.session,
+                appointment.id
+            )
+
+            expect(statusCode).toEqual(200)
+            await expect(body).toMatchDto(GetAppointmentInfoRes)
+        })
+
+        it('Should throw when the appointment does not exist', async () => {
+            const [registerRes] = await registerUser(app)
+            const fakeAppointmentId = faker.datatype.number()
+
+            const [body, statusCode] = await getAppointmentInfo(
+                app,
+                registerRes.session,
+                fakeAppointmentId
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.getAppointmentInfo.appointmentNotFound
+            )
         })
     })
 })
