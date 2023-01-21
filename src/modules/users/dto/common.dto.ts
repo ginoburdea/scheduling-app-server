@@ -4,6 +4,7 @@ import {
     IsDateString,
     IsEmail,
     IsString,
+    IsUUID,
     Length,
     MaxLength,
     MinLength,
@@ -23,6 +24,10 @@ export class AuthDto {
 }
 
 export class AuthRes {
+    @ApiProperty()
+    @IsUUID()
+    calendarId: string
+
     @ApiProperty()
     @IsEmail()
     userEmail: string

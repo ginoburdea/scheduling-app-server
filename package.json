@@ -1,7 +1,7 @@
 {
     "name": "scheduling-app-server",
     "private": true,
-    "version": "0.10.1",
+    "version": "0.10.2",
     "license": "MIT",
     "scripts": {
         "dev": "nest start --watch",

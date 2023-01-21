@@ -98,6 +98,11 @@ export class UsersService {
                 password: hashedPassword,
                 calendars: { create: {} },
             },
+            include: {
+                calendars: {
+                    select: { publicId: true },
+                },
+            },
         })
 
         const { session, sessionExpiresAt } = await this.createSession(
@@ -105,6 +110,7 @@ export class UsersService {
             ip
         )
         return {
+            calendarId: user.calendars[0].publicId,
             userEmail: user.email,
             session,
             sessionExpiresAt,
@@ -114,7 +120,14 @@ export class UsersService {
     async logIn(email: string, password: string, ip: string) {
         const user = await this.prisma.users.findFirst({
             where: { email },
-            select: { id: true, email: true, password: true },
+            select: {
+                id: true,
+                email: true,
+                password: true,
+                calendars: {
+                    select: { publicId: true },
+                },
+            },
         })
         if (!user) {
             throw new BadRequestException(usersErrors.logIn.userNotFound)
@@ -130,6 +143,7 @@ export class UsersService {
             ip
         )
         return {
+            calendarId: user.calendars[0].publicId,
             userEmail: user.email,
             session,
             sessionExpiresAt,
