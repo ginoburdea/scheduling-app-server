@@ -58,11 +58,7 @@ export class CalendarsController {
         @Body() body: UpdateCalendarDto,
         @Req() req: FastifyRequest
     ) {
-        return await this.calendarsService.updateCalendar(
-            body.id,
-            body.updates,
-            req.user.id
-        )
+        return await this.calendarsService.updateCalendar(req.calendarId, body)
     }
 
     @Get()

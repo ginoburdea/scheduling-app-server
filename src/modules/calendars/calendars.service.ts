@@ -34,41 +34,26 @@ export class CalendarsService {
             },
         })
 
-        return calendar
+        return { ...calendar }
     }
 
-    async updateCalendar(
-        calendarPublicId: string,
-        updates: PartialCalendar,
-        userId: number
-    ) {
-        const calendar = await this.prisma.calendars.findFirst({
-            where: { publicId: calendarPublicId },
-            select: { id: true, userId: true },
-        })
-        if (!calendar) {
-            throw new BadRequestException(
-                calendarsErrors.updateCalendar.calendarNotFound
-            )
-        }
-        if (calendar.userId !== userId) {
-            throw new BadRequestException(
-                calendarsErrors.updateCalendar.cannotUpdateCalendar
-            )
-        }
-
+    async updateCalendar(calendarId: number, updates: PartialCalendar) {
         const updatedCalendar = await this.prisma.calendars.update({
-            where: { id: calendar.id },
+            where: { id: calendarId },
             data: updates,
+            select: {
+                businessName: true,
+                businessDescription: true,
+                dayStartsAt: true,
+                dayEndsAt: true,
+                breakBetweenBookings: true,
+                bookingDuration: true,
+                bookInAdvance: true,
+                workingDays: true,
+            },
         })
-        return {
-            ...updatedCalendar,
-            updatedAt: undefined,
-            createdAt: undefined,
-            userId: undefined,
-            publicId: undefined,
-            id: undefined,
-        }
+
+        return { ...updatedCalendar }
     }
 
     async getCalendarInfo(calendarPublicId: string) {

@@ -73,43 +73,6 @@ describe('/calendars', () => {
             expect(statusCode).toEqual(200)
             await expect(body).toMatchDto(UpdateCalendarRes)
         })
-
-        it('Should throw when the calendar does not exists', async () => {
-            const [registerRes] = await registerUser(app)
-            const fakeCalendarId = faker.datatype.uuid()
-
-            const [body, statusCode] = await updateCalendar(
-                app,
-                registerRes.session,
-                fakeCalendarId
-            )
-
-            expect(statusCode).toEqual(400)
-            await expect(body).toMatchError(
-                calendarsErrors.updateCalendar.calendarNotFound
-            )
-        })
-
-        it('Should throw when the user does not own the calendar', async () => {
-            const [registerRes1] = await registerUser(app)
-            const [calendarId] = await getCalendarId(
-                prisma,
-                registerRes1.userEmail
-            )
-
-            const [registerRes2] = await registerUser(app)
-
-            const [body, statusCode] = await updateCalendar(
-                app,
-                registerRes2.session,
-                calendarId
-            )
-
-            expect(statusCode).toEqual(400)
-            await expect(body).toMatchError(
-                calendarsErrors.updateCalendar.cannotUpdateCalendar
-            )
-        })
     })
 
     describe('/ (GET)', () => {
