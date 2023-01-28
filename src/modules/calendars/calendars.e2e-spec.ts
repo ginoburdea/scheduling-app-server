@@ -368,7 +368,7 @@ describe('/calendars', () => {
     })
 
     describe('/calendars/appointments (GET)', () => {
-        it('Should successfully get appointments in the selected month', async () => {
+        it('Should successfully get appointments in the selected period', async () => {
             const [registerRes] = await registerUser(app)
             const [, calendarId] = await getCalendarId(
                 prisma,
@@ -388,6 +388,26 @@ describe('/calendars', () => {
 
             expect(statusCode).toEqual(200)
             await expect(body).toMatchDto(GetAppointmentsRes)
+        })
+
+        it('Should successfully get appointments in the selected period', async () => {
+            const [registerRes] = await registerUser(app)
+            const [, calendarId] = await getCalendarId(
+                prisma,
+                registerRes.userEmail
+            )
+            await setAppointments(prisma, calendarId, new Date())
+
+            const [body, statusCode] = await getAppointments(
+                app,
+                registerRes.session,
+                dayjs().add(8, 'days').startOf('day').toDate()
+            )
+
+            expect(statusCode).toEqual(400)
+            await expect(body).toMatchError(
+                calendarsErrors.getAppointments.intervalTooBig
+            )
         })
     })
 

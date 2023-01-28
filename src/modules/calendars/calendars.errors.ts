@@ -21,6 +21,9 @@ export const calendarsErrors = {
         tooLate: 'cannot book at that time',
         cannotBookAnyTime: 'cannot book this time',
     },
+    getAppointments: {
+        intervalTooBig: 'atOrBefore is too far in the future',
+    },
     getAppointmentInfo: {
         appointmentNotFound: 'appointment not found',
     },

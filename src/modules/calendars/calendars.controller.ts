@@ -107,8 +107,8 @@ export class CalendarsController {
     ) {
         return await this.calendarsService.getAppointments(
             req.calendarId,
-            query.month,
-            query.year
+            query.atOrAfter,
+            query.atOrBefore
         )
     }
 

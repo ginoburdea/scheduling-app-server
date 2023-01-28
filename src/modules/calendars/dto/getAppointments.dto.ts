@@ -2,28 +2,21 @@ import { ApiProperty } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 import {
     IsArray,
+    IsDate,
     IsDateString,
     IsInt,
     IsString,
-    Max,
-    Min,
     ValidateNested,
 } from 'class-validator'
 
 export class GetAppointmentsDto {
-    @ApiProperty({
-        example: new Date().getMonth() + 1,
-        minimum: 1,
-        maximum: 12,
-    })
-    @IsInt()
-    @Min(1)
-    @Max(12)
-    month: number
+    @ApiProperty()
+    @IsDate()
+    atOrAfter: Date
 
-    @ApiProperty({ example: new Date().getFullYear() })
-    @IsInt()
-    year: number
+    @ApiProperty()
+    @IsDate()
+    atOrBefore: Date
 }
 
 class MiniAppointment {

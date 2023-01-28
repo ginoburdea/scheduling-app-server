@@ -302,24 +302,23 @@ export class CalendarsService {
         return { name, phoneNumber, date }
     }
 
-    async getAppointments(calendarId: number, month: number, year: number) {
-        const date = dayjs()
-            .set('month', month - 1)
-            .set('year', year)
+    async getAppointments(
+        calendarId: number,
+        atOrAfter: Date,
+        atOrBefore: Date
+    ) {
+        if (dayjs(atOrBefore).diff(atOrAfter, 'days') > 7) {
+            throw new BadRequestException(
+                calendarsErrors.getAppointments.intervalTooBig
+            )
+        }
 
         const appointments = await this.prisma.appointments.findMany({
             where: {
                 calendarId,
-                onDate: {
-                    gte: date.startOf('month').toDate(),
-                    lte: date.endOf('month').toDate(),
-                },
+                onDate: { gte: atOrAfter, lte: atOrBefore },
             },
-            select: {
-                id: true,
-                onDate: true,
-                duration: true,
-            },
+            select: { id: true, onDate: true, duration: true },
         })
 
         const groups = {}

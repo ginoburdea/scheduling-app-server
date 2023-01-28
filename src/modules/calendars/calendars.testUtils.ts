@@ -171,14 +171,17 @@ export const getNextSaturday = () =>
 
 export const getAppointments = async (
     app: NestFastifyApplication,
-    sessionId: string
+    sessionId: string,
+    atOrBefore?: Date
 ) => {
     const res = await app.inject({
         method: 'GET',
         url: '/calendars/appointments',
         query: {
-            month: '' + new Date().getMonth() + 1,
-            year: '' + new Date().getFullYear(),
+            atOrAfter: dayjs().startOf('day').toISOString(),
+            atOrBefore: atOrBefore
+                ? atOrBefore.toISOString()
+                : dayjs().add(7, 'days').endOf('day').toISOString(),
         },
         headers: {
             authorization: `Bearer ${sessionId}`,
