@@ -11,12 +11,12 @@ import {
 } from 'class-validator'
 
 export class AuthDto {
-    @ApiProperty()
+    @ApiProperty({ format: 'email' })
     @IsEmail()
     @Transform(({ value }) => value.toLowerCase())
     email: string
 
-    @ApiProperty()
+    @ApiProperty({ example: 'U5@!d3r78%m%zb*c' })
     @IsString()
     @MinLength(8)
     @MaxLength(64)
@@ -24,20 +24,23 @@ export class AuthDto {
 }
 
 export class AuthRes {
-    @ApiProperty()
+    @ApiProperty({ format: 'uuid' })
     @IsUUID()
     calendarId: string
 
-    @ApiProperty()
+    @ApiProperty({ format: 'email' })
     @IsEmail()
     userEmail: string
 
-    @ApiProperty()
+    @ApiProperty({
+        example:
+            'mu5bKH*@dfC2^!N22LjG8Lf@QoCye^D8om%gMVn!D@n5paLeZq#^xW6XS%6gqTJ9',
+    })
     @IsString()
     @Length(64)
     session: string
 
-    @ApiProperty()
+    @ApiProperty({ format: 'date-time' })
     @IsDateString()
-    sessionExpiresAt: Date
+    sessionExpiresAt: string
 }

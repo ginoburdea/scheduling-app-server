@@ -2,15 +2,15 @@ import { ApiProperty } from '@nestjs/swagger'
 import { IsInt, IsOptional, IsString } from 'class-validator'
 
 export class ErrorDto {
-    @ApiProperty()
+    @ApiProperty({ example: 400 })
     @IsInt()
     statusCode: number
 
-    @ApiProperty()
+    @ApiProperty({ example: 'email is required' })
     @IsString()
     message: string
 
-    @ApiProperty({ required: false })
+    @ApiProperty({ required: false, example: 'Bad request' })
     @IsOptional()
     @IsString()
     error: string

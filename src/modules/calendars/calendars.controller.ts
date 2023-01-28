@@ -23,7 +23,10 @@ import {
     GetAvailableDaysDto,
     GetAvailableDaysRes,
 } from './dto/getAvailableDays.dto'
-import { GetAvailableSpotsDto } from './dto/getAvailableSpots.dto'
+import {
+    GetAvailableSpotsDto,
+    GetAvailableSpotsRes,
+} from './dto/getAvailableSpots.dto'
 import { SetAppointmentDto, SetAppointmentRes } from './dto/setAppointment.dto'
 import {
     GetAppointmentsDto,
@@ -67,7 +70,7 @@ export class CalendarsController {
     }
 
     @Get('available-spots')
-    @ApiOkResponse({ type: GetAvailableDaysRes })
+    @ApiOkResponse({ type: GetAvailableSpotsRes })
     async getAvailableSpots(@Query() query: GetAvailableSpotsDto) {
         return await this.calendarsService.getAvailableSpots(
             query.calendarId,

@@ -11,37 +11,41 @@ import {
 } from 'class-validator'
 
 export class GetAppointmentsDto {
-    @ApiProperty()
+    @ApiProperty({
+        example: new Date().getMonth() + 1,
+        minimum: 1,
+        maximum: 12,
+    })
     @IsInt()
     @Min(1)
     @Max(12)
     month: number
 
-    @ApiProperty()
+    @ApiProperty({ example: new Date().getFullYear() })
     @IsInt()
     year: number
 }
 
 class MiniAppointment {
-    @ApiProperty()
+    @ApiProperty({ example: 175 })
     @IsInt()
     id: number
 
-    @ApiProperty()
+    @ApiProperty({ type: 'string', format: 'date-time' })
     @IsDateString()
-    startsAt: Date
+    startsAt: string
 
-    @ApiProperty()
+    @ApiProperty({ type: 'string', format: 'date-time' })
     @IsDateString()
-    endsAt: Date
+    endsAt: string
 }
 
 class Appointment {
-    @ApiProperty()
+    @ApiProperty({ format: 'date-time' })
     @IsString()
     day: string
 
-    @ApiProperty()
+    @ApiProperty({ type: [MiniAppointment] })
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => MiniAppointment)
@@ -49,7 +53,7 @@ class Appointment {
 }
 
 export class GetAppointmentsRes {
-    @ApiProperty()
+    @ApiProperty({ type: [Appointment] })
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => Appointment)

@@ -2,14 +2,17 @@ import { ApiProperty } from '@nestjs/swagger'
 import { IsArray, IsDateString, IsUUID } from 'class-validator'
 
 export class GetAvailableDaysDto {
-    @ApiProperty()
+    @ApiProperty({ format: 'uuid' })
     @IsUUID()
     calendarId: string
 }
 
 export class GetAvailableDaysRes {
-    @ApiProperty()
+    @ApiProperty({
+        type: 'array',
+        items: { type: 'string', format: 'date-time' },
+    })
     @IsArray()
     @IsDateString({}, { each: true })
-    dates: string
+    dates: string[]
 }

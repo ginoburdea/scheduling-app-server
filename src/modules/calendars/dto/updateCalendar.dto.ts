@@ -16,37 +16,39 @@ import {
 } from 'class-validator'
 
 class Calendar {
-    @ApiProperty()
+    @ApiProperty({ example: 'Lorem Ipsum Inc.' })
     @IsString()
     @MinLength(4)
     @MaxLength(32)
     businessName: string
 
-    @ApiProperty()
+    @ApiProperty({
+        example: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+    })
     @IsString()
     @MinLength(8)
     @MaxLength(128)
     businessDescription: string
 
-    @ApiProperty()
+    @ApiProperty({ example: '09:00' })
     @IsMilitaryTime()
     dayStartsAt: string
 
-    @ApiProperty()
+    @ApiProperty({ example: '17:00' })
     @IsMilitaryTime()
     dayEndsAt: string
 
-    @ApiProperty()
+    @ApiProperty({ example: 5 })
     @IsInt()
     @Min(0)
     breakBetweenBookings: number
 
-    @ApiProperty()
+    @ApiProperty({ example: 25 })
     @IsInt()
     @Min(5)
     bookingDuration: number
 
-    @ApiProperty()
+    @ApiProperty({ example: 14 })
     @IsInt()
     @Min(0)
     bookInAdvance: number
@@ -57,14 +59,14 @@ class Calendar {
     @IsInt({ each: true })
     @Min(0, { each: true })
     @Max(6, { each: true })
-    @ApiProperty({ type: 'array', items: { type: 'number' } })
+    @ApiProperty({ type: ['number'], example: [0, 1, 2, 3, 4] })
     workingDays: number[]
 }
 
 export class PartialCalendar extends PartialType(Calendar) {}
 
 export class UpdateCalendarDto {
-    @ApiProperty()
+    @ApiProperty({ format: 'uuid' })
     @IsUUID()
     id: string
 

@@ -4,7 +4,7 @@ import { IsDate, IsDateString, IsString, IsUUID } from 'class-validator'
 import { capitalCase } from 'change-case'
 
 export class SetAppointmentDto {
-    @ApiProperty()
+    @ApiProperty({ format: 'uuid' })
     @IsUUID()
     calendarId: string
 
@@ -12,26 +12,26 @@ export class SetAppointmentDto {
     @IsDate()
     date: Date
 
-    @ApiProperty()
+    @ApiProperty({ example: 'John Doe' })
     @IsString()
     @Transform(text => capitalCase(text.value))
     name: string
 
-    @ApiProperty()
+    @ApiProperty({ example: '+4 0700 000 000' })
     @IsString()
     phoneNumber: string
 }
 
 export class SetAppointmentRes {
-    @ApiProperty()
+    @ApiProperty({ type: 'string', format: 'date-time' })
     @IsDateString()
-    date: Date
+    date: string
 
-    @ApiProperty()
+    @ApiProperty({ example: '+4 0700 000 000' })
     @IsString()
     phoneNumber: string
 
-    @ApiProperty()
+    @ApiProperty({ example: 'John Doe' })
     @IsString()
     name: string
 }
