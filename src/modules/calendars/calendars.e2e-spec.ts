@@ -12,6 +12,7 @@ import {
     getAvailableSpots,
     getCalendarId,
     getCalendarInfo,
+    getCalendarSettings,
     getNextMonday,
     getNextSaturday,
     setAppointment,
@@ -27,6 +28,7 @@ import * as dayjs from 'dayjs'
 import { SetAppointmentRes } from './dto/setAppointment.dto'
 import { GetAppointmentsRes } from './dto/getAppointments.dto'
 import { GetAppointmentInfoRes } from './dto/getAppointmentInfo.dto'
+import { GetCalendarSettingsRes } from './dto/getCalendarSettings.dto'
 
 describe('/calendars', () => {
     let app: NestFastifyApplication
@@ -38,6 +40,20 @@ describe('/calendars', () => {
 
         await app.init()
         await app.getHttpAdapter().getInstance().ready()
+    })
+
+    describe('/settings (GET)', () => {
+        it('Should get the calendar settings successfully', async () => {
+            const [registerRes] = await registerUser(app)
+
+            const [body, statusCode] = await getCalendarSettings(
+                app,
+                registerRes.session
+            )
+
+            expect(statusCode).toEqual(200)
+            await expect(body).toMatchDto(GetCalendarSettingsRes)
+        })
     })
 
     describe('/ (PUT)', () => {

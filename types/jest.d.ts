@@ -1,5 +1,5 @@
 interface CustomMatchers<R = unknown> {
-    toMatchDto(dto: ClassConstructor<any>): Promise<R>
+    toMatchDto(dto: ClassConstructor<any>, printErrors?: boolean): Promise<R>
     toMatchError(error: string): Promise<R>
 }
 

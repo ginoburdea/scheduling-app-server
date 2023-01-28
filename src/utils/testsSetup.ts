@@ -6,7 +6,7 @@ import { validationOptions } from './validationOptions'
 import { ErrorDto } from './error.dto'
 
 const toMatchDto: MatcherFunction<[dto: ClassConstructor<any>]> =
-    async function (actual, dto) {
+    async function (actual, dto, printErrors = true) {
         const instance = plainToInstance(dto, actual)
         const errors = await validate(instance, {
             ...validationOptions,
@@ -14,6 +14,9 @@ const toMatchDto: MatcherFunction<[dto: ClassConstructor<any>]> =
         })
 
         const pass = errors.length === 0
+        if (errors.length > 0 && printErrors) {
+            console.log(errors)
+        }
         return {
             message: () =>
                 `expected ${this.utils.printReceived(actual)}${
@@ -29,7 +32,7 @@ const toMatchError: MatcherFunction<[error: string]> = async function (
     actual: ErrorDto,
     error
 ) {
-    await expect(actual).toMatchDto(ErrorDto)
+    await expect(actual).toMatchDto(ErrorDto, false)
 
     const pass = actual.message === error
     return {

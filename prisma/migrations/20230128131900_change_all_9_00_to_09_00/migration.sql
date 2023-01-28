@@ -1,0 +1,1 @@
+UPDATE "calendars" SET "dayStartsAt" = '09:00' WHERE "dayStartsAt" = '9:00';

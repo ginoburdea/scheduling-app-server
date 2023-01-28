@@ -36,6 +36,7 @@ import {
     GetAppointmentInfoDto,
     GetAppointmentInfoRes,
 } from './dto/getAppointmentInfo.dto'
+import { GetCalendarSettingsRes } from './dto/getCalendarSettings.dto'
 
 @Controller('calendars')
 @ApiTags('calendars')
@@ -43,10 +44,17 @@ import {
 export class CalendarsController {
     constructor(private readonly calendarsService: CalendarsService) {}
 
+    @Get('settings')
+    @UseInterceptors(AuthInterceptor)
+    @ApiOkResponse({ type: GetCalendarSettingsRes })
+    async getCalendarSettings(@Req() req: FastifyRequest) {
+        return await this.calendarsService.getCalendarSettings(req.calendarId)
+    }
+
     @Put()
     @UseInterceptors(AuthInterceptor)
     @ApiOkResponse({ type: UpdateCalendarRes })
-    async register(
+    async updateCalendar(
         @Body() body: UpdateCalendarDto,
         @Req() req: FastifyRequest
     ) {

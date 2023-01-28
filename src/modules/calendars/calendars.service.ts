@@ -19,6 +19,24 @@ export class CalendarsService {
             .toDate()
     }
 
+    async getCalendarSettings(calendarId: number) {
+        const calendar = await this.prisma.calendars.findFirst({
+            where: { id: calendarId },
+            select: {
+                businessName: true,
+                businessDescription: true,
+                dayStartsAt: true,
+                dayEndsAt: true,
+                breakBetweenBookings: true,
+                bookingDuration: true,
+                bookInAdvance: true,
+                workingDays: true,
+            },
+        })
+
+        return calendar
+    }
+
     async updateCalendar(
         calendarPublicId: string,
         updates: PartialCalendar,

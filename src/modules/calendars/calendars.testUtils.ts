@@ -24,6 +24,21 @@ const genCalendarUpdates = ({
     workingDays,
 })
 
+export const getCalendarSettings = async (
+    app: NestFastifyApplication,
+    sessionId: string
+): Promise<[string, number]> => {
+    const res = await app.inject({
+        method: 'GET',
+        url: '/calendars/settings',
+        headers: {
+            authorization: `Bearer ${sessionId}`,
+        },
+    })
+
+    return [res.json(), res.statusCode]
+}
+
 export const updateCalendar = async (
     app: NestFastifyApplication,
     sessionId: string,

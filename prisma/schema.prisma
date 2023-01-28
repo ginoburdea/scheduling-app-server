@@ -33,7 +33,7 @@ model calendars {
   publicId             String         @default(uuid())
   businessName         String         @default("Sample name")
   businessDescription  String         @default("Sample description")
-  dayStartsAt          String         @default("9:00")
+  dayStartsAt          String         @default("09:00")
   dayEndsAt            String         @default("17:00")
   breakBetweenBookings Int            @default(5)
   bookingDuration      Int            @default(25)
