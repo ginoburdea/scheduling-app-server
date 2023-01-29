@@ -132,7 +132,6 @@ export class CalendarsService {
             select: { onDate: true, duration: true },
             orderBy: { onDate: 'asc' },
         })
-        if (appointments.length === 0) return { spots: [] }
 
         const openingTime = this.militaryTimeToDate(
             calendar.dayStartsAt,
@@ -143,11 +142,25 @@ export class CalendarsService {
             selectedDay.toDate()
         )
 
+        const apps = [
+            {
+                onDate: dayjs(openingTime)
+                    .subtract(calendar.bookingDuration, 'minutes')
+                    .toDate(),
+                duration: 0,
+            },
+            ...appointments,
+            {
+                onDate: closingTime,
+                duration: 0,
+            },
+        ]
+
         const trueAppointmentLength =
             calendar.bookingDuration + calendar.breakBetweenBookings
         const spots: Date[] = []
-        for (let i = 0; i < appointments.length; i++) {
-            const app = appointments[i]
+        for (let i = 0; i < apps.length; i++) {
+            const app = apps[i]
             const tempCurrent = dayjs(app.onDate)
                 .add(app.duration, 'minutes')
                 .add(calendar.breakBetweenBookings, 'minutes')
@@ -156,7 +169,7 @@ export class CalendarsService {
             const current =
                 tempCurrent < openingTime ? openingTime : tempCurrent
 
-            const tempNext = appointments[i + 1]
+            const tempNext = apps[i + 1]
             const next =
                 tempNext && tempNext.onDate < closingTime
                     ? tempNext.onDate
