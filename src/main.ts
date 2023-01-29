@@ -3,6 +3,6 @@ import { buildApp } from './utils/buildApp'
 
 async function bootstrap() {
     const app = await buildApp(AppModule)
-    await app.listen(process.env.PORT, process.env.HOST)
+    await app.listen(process.env.SERVER_PORT, process.env.SERVER_HOST)
 }
 bootstrap()

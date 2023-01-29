@@ -285,7 +285,7 @@ export class CalendarsService {
         }
 
         const hashedPhoneNumber = aes
-            .encrypt(phoneNumber, process.env.DATABASE_ENCRYPTION_KEY)
+            .encrypt(phoneNumber, process.env.SERVER_DATABASE_ENCRYPTION_KEY)
             .toString()
         await this.prisma.appointments.create({
             data: {
