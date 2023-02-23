@@ -1,13 +1,13 @@
 {
     "name": "scheduling-app-server",
     "private": true,
-    "version": "2.0.2",
+    "version": "2.1.0",
     "license": "MIT",
     "scripts": {
         "dev": "nest start --watch",
         "debug": "nest start --debug --watch",
         "build": "nest build",
-        "prod": "node dist/main",
+        "prod": "prisma migrate deploy && node dist/main",
         "lint": "eslint \"src/**/*.{ts,js}\" --fix",
         "test": "jest --watchAll",
         "test:once": "jest",
@@ -49,6 +49,7 @@
         "@types/supertest": "^2.0.12",
         "@typescript-eslint/eslint-plugin": "^5.30.5",
         "@typescript-eslint/parser": "^5.30.5",
+        "dotenv-cli": "^7.0.0",
         "eslint": "^8.19.0",
         "eslint-config-prettier": "^8.5.0",
         "eslint-plugin-prettier": "^4.2.1",
